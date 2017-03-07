@@ -8,7 +8,6 @@
 
 #import "FLAVCaptureManager.h"
 
-
 @interface FLAVCaptureManager ()<AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate>
 @property (nonatomic,strong)AVCaptureSession *session;
 // input
@@ -28,6 +27,13 @@
     if (self = [super init]) {
         // check auth
         [self fl_checkAuth];
+        
+    }
+    return self;
+}
+
+- (instancetype)initWithVideoConfig:(FLVideoConfig *)videoConfig audioConfig:(FLAudioConfig *)audioConfig{
+    if (self = [super init]) {
         
     }
     return self;
@@ -83,7 +89,8 @@
     [self.session commitConfiguration];
     [self fl_defaultConfig];
     [self.session startRunning];
-    
+    // setting fps
+    [self fl_updateFps:self.fl_videoConfig.fl_fps];
 }
 
 
@@ -155,7 +162,7 @@
         }
         // whether the video flowing through the connection should be rotated to a given orientation.视频旋转到给定方向
         if (connection.isVideoOrientationSupported) {
-            [connection setVideoOrientation:self.fl_videoOrientation ? self.fl_videoOrientation : AVCaptureVideoOrientationPortrait];
+            [connection setVideoOrientation:self.fl_videoConfig.fl_videoOrientation ? self.fl_videoConfig.fl_videoOrientation : AVCaptureVideoOrientationPortrait];
         }
         // whether the video flowing through the connection should be mirrored about its vertical axis.视频是否应围绕其垂直轴进行镜像
         if (connection.isVideoMirroringSupported) {
@@ -167,20 +174,11 @@
 - (void)fl_initCapturePreset:(NSString *)captureSessionPreset{
     if (![self.session canSetSessionPreset:captureSessionPreset]) {
         @throw [NSException exceptionWithName:@"Not supported captureSessionPreset" reason:[NSString stringWithFormat:@"captureSessionPreset is [%@]",captureSessionPreset] userInfo:nil];
+//        NSLog(@"Not supported captureSessionPreset:%@",[NSString stringWithFormat:@"captureSessionPreset is [%@]",captureSessionPreset]);
     }
     self.session.sessionPreset = captureSessionPreset;
 }
 
--(void)switchCamera{
-    if ([self.videoCaptureInput isEqual: self.fontCaptureInput]) {
-        self.videoCaptureInput = self.backCaptureInput;
-    }else{
-        self.videoCaptureInput = self.fontCaptureInput;
-    }
-    
-    //更新fps
-//    [self updateFps: self.videoConfig.fps];
-}
 
 #pragma mark -- Setter & Getter
 
@@ -194,6 +192,7 @@
     else{
         self.videoCaptureInput = self.backCaptureInput;
     }
+    [self fl_updateFps:self.fl_videoConfig.fl_fps];
     _fl_isFont = fl_isFont;
 }
 
@@ -216,13 +215,6 @@
     _videoCaptureInput = videoCaptureInput;
 }
 
-- (void)setFl_videoOrientation:(AVCaptureVideoOrientation)fl_videoOrientation{
-    _fl_videoOrientation = fl_videoOrientation;
-    [self.session beginConfiguration];
-    // reset
-    [self fl_videoOutputConfig];
-    [self.session commitConfiguration];
-}
 
 - (void)setFl_captureSessionPreset:(FLCaptureSessionPreset)fl_captureSessionPreset{
     _fl_captureSessionPreset = fl_captureSessionPreset;
@@ -240,6 +232,8 @@
         case FLCaptureSessionPreset_352x288:
             captureSessionPreset = AVCaptureSessionPreset352x288;
             break;
+        case FLCaptureSessionPreset_960x540:
+            captureSessionPreset = AVCaptureSessionPresetiFrame960x540;
         case FLCaptureSessionPreset_1280x720:
             captureSessionPreset = AVCaptureSessionPreset1280x720;
             break;
@@ -288,10 +282,27 @@
  *  output callback
  */
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection{
-    
+    // 这里获取到 sampleBuffer 就要转换成 yuv 格式数据（通过CMSampleBufferGetImageBuffer）
 }
 
 #pragma mark -- private method
+
+//修改fps
+-(void)fl_updateFps:(NSInteger) fps{
+    NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    
+    for (AVCaptureDevice *vDevice in videoDevices) {
+        float maxRate = [(AVFrameRateRange *)[vDevice.activeFormat.videoSupportedFrameRateRanges objectAtIndex:0] maxFrameRate];
+        if (maxRate >= fps) {
+            if ([vDevice lockForConfiguration:NULL]) {
+                // CMTimeMake(a,b)    a当前第几帧, b每秒钟多少帧.当前播放时间a/b
+                vDevice.activeVideoMinFrameDuration = CMTimeMake(1, (int)fps);
+                vDevice.activeVideoMaxFrameDuration = vDevice.activeVideoMinFrameDuration;
+                [vDevice unlockForConfiguration];
+            }
+        }
+    }
+}
 /**
  *  @author gitKong
  *

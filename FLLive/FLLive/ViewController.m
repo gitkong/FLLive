@@ -20,6 +20,8 @@
     FLAVCaptureManager *capture = [[FLAVCaptureManager alloc] init];
     capture.fl_previewView = self.view;
     capture.fl_videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
+//    capture.fl_captureSessionPreset = FLCaptureSessionPreset_3840x2160;
+    
 //    UIView *firstView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, 200)];
 //    FLAVCaptureManager *capture = [[FLAVCaptureManager alloc] init];
 //    capture.fl_isFont = NO;

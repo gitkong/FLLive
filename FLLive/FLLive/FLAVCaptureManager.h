@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 @import UIKit;
-@import AVFoundation;
+#import "FLAVConfig.h"
 
 typedef NS_ENUM(NSUInteger, FLCaptureSessionPreset) {
     FLCaptureSessionPreset_High,//iOS 4.0+
@@ -16,12 +16,26 @@ typedef NS_ENUM(NSUInteger, FLCaptureSessionPreset) {
     FLCaptureSessionPreset_Low,//iOS 4.0+
     FLCaptureSessionPreset_352x288,//iOS 5.0+
     FLCaptureSessionPreset_640x480,//iOS 4.0+
+    FLCaptureSessionPreset_960x540,//iOS 5.0+
     FLCaptureSessionPreset_1280x720,//iOS 4.0+
     FLCaptureSessionPreset_1920x1080,//iOS 5.0+
     FLCaptureSessionPreset_3840x2160//iOS 9.0+
 };
 
 @interface FLAVCaptureManager : NSObject
+/*
+ *  BY gitKong
+ *
+ *  视频编码配置
+ */
+@property (nonatomic,strong)FLVideoConfig *fl_videoConfig;
+/*
+ *  BY gitKong
+ *
+ *  音频编码配置
+ */
+@property (nonatomic,strong)FLAudioConfig *fl_audioConfig;
+
 /*
  *  BY gitKong
  *
@@ -34,12 +48,7 @@ typedef NS_ENUM(NSUInteger, FLCaptureSessionPreset) {
  *  capture session preset,default is FLCaptureSessionPreset_High (采集质量)
  */
 @property (nonatomic,assign)FLCaptureSessionPreset fl_captureSessionPreset;
-/*
- *  BY gitKong
- *
- *  video orientatation(屏幕方向)
- */
-@property (nonatomic,assign)AVCaptureVideoOrientation fl_videoOrientation;
+
 /*
  *  BY gitKong
  *
@@ -47,5 +56,7 @@ typedef NS_ENUM(NSUInteger, FLCaptureSessionPreset) {
  */
 @property (nonatomic,strong)UIView *fl_previewView;
 
+
+- (instancetype)initWithVideoConfig:(FLVideoConfig *)videoConfig audioConfig:(FLAudioConfig *)audioConfig;
 
 @end
