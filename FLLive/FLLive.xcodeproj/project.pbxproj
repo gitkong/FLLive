@@ -16,6 +16,7 @@
 		115541A61E666527007D966F /* FLLiveTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 115541A51E666527007D966F /* FLLiveTests.m */; };
 		115541B11E666527007D966F /* FLLiveUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 115541B01E666527007D966F /* FLLiveUITests.m */; };
 		115541C11E6665A4007D966F /* FLAVCaptureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 115541C01E6665A4007D966F /* FLAVCaptureManager.m */; };
+		118508911E6E4A3B0070043C /* FLVideoEncoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 118508901E6E4A3B0070043C /* FLVideoEncoder.m */; };
 		11952F241E6D5C60001166A2 /* FLAVConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 11952F231E6D5C60001166A2 /* FLAVConfig.m */; };
 /* End PBXBuildFile section */
 
@@ -55,6 +56,8 @@
 		115541B21E666527007D966F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		115541BF1E6665A4007D966F /* FLAVCaptureManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FLAVCaptureManager.h; sourceTree = "<group>"; };
 		115541C01E6665A4007D966F /* FLAVCaptureManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FLAVCaptureManager.m; sourceTree = "<group>"; };
+		1185088F1E6E4A3B0070043C /* FLVideoEncoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FLVideoEncoder.h; sourceTree = "<group>"; };
+		118508901E6E4A3B0070043C /* FLVideoEncoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FLVideoEncoder.m; sourceTree = "<group>"; };
 		11952F221E6D5C60001166A2 /* FLAVConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FLAVConfig.h; sourceTree = "<group>"; };
 		11952F231E6D5C60001166A2 /* FLAVConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FLAVConfig.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -107,6 +110,7 @@
 		1155418A1E666527007D966F /* FLLive */ = {
 			isa = PBXGroup;
 			children = (
+				1185088E1E6E486B0070043C /* Encoder */,
 				11952F211E6D5BB9001166A2 /* Config */,
 				115541BE1E666558007D966F /* Capture */,
 				1155418E1E666527007D966F /* AppDelegate.h */,
@@ -155,6 +159,15 @@
 				115541C01E6665A4007D966F /* FLAVCaptureManager.m */,
 			);
 			name = Capture;
+			sourceTree = "<group>";
+		};
+		1185088E1E6E486B0070043C /* Encoder */ = {
+			isa = PBXGroup;
+			children = (
+				1185088F1E6E4A3B0070043C /* FLVideoEncoder.h */,
+				118508901E6E4A3B0070043C /* FLVideoEncoder.m */,
+			);
+			name = Encoder;
 			sourceTree = "<group>";
 		};
 		11952F211E6D5BB9001166A2 /* Config */ = {
@@ -304,6 +317,7 @@
 			files = (
 				115541931E666527007D966F /* ViewController.m in Sources */,
 				115541901E666527007D966F /* AppDelegate.m in Sources */,
+				118508911E6E4A3B0070043C /* FLVideoEncoder.m in Sources */,
 				11952F241E6D5C60001166A2 /* FLAVConfig.m in Sources */,
 				1155418D1E666527007D966F /* main.m in Sources */,
 				115541C11E6665A4007D966F /* FLAVCaptureManager.m in Sources */,

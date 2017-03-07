@@ -8,8 +8,9 @@
 
 #import "ViewController.h"
 #import "FLAVCaptureManager.h"
-@interface ViewController ()
 
+@interface ViewController ()
+@property (nonatomic,strong)FLAVCaptureManager *capture;
 @end
 
 @implementation ViewController
@@ -17,9 +18,12 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    FLAVCaptureManager *capture = [[FLAVCaptureManager alloc] init];
-    capture.fl_previewView = self.view;
-    capture.fl_videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
+    self.capture = [[FLAVCaptureManager alloc] init];
+    
+//    UIView *preview = [[UIView alloc] initWithFrame:self.view.bounds];
+//    [self.view addSubview:preview];
+//    capture.fl_previewView = preview;
+//    [capture switchCamera];
 //    capture.fl_captureSessionPreset = FLCaptureSessionPreset_3840x2160;
     
 //    UIView *firstView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, 200)];
@@ -34,6 +38,11 @@
 //    [self.view addSubview:secondView];
 }
 
+
+-(void)viewWillLayoutSubviews{
+    [super viewWillLayoutSubviews];
+    self.capture.fl_previewView = self.view;
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

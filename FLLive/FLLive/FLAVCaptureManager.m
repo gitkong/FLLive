@@ -25,6 +25,10 @@
 
 - (instancetype)init{
     if (self = [super init]) {
+        // default config
+        self.fl_videoConfig = [[FLVideoConfig alloc] init];
+        self.fl_audioConfig = [[FLAudioConfig alloc] init];
+        self.fl_videoEncoder = [[FLVideoEncoder alloc] init];
         // check auth
         [self fl_checkAuth];
         
@@ -34,7 +38,10 @@
 
 - (instancetype)initWithVideoConfig:(FLVideoConfig *)videoConfig audioConfig:(FLAudioConfig *)audioConfig{
     if (self = [super init]) {
-        
+        self.fl_videoConfig = videoConfig;
+        self.fl_audioConfig = audioConfig;
+        // check auth
+        [self fl_checkAuth];
     }
     return self;
 }
@@ -52,14 +59,14 @@
     switch ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo]) {
         case AVAuthorizationStatusAuthorized:{
             // already authorize,init capture session
-            [self fl_initCaptureSession];
+            [self fl_init];
             break;
         }
         case AVAuthorizationStatusNotDetermined:{
             // waiting user to authorize
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
                 if (granted) {
-                    [self fl_initCaptureSession];
+                    [self fl_init];
                 }
                 else{
                     [self fl_showAuthTip];
@@ -73,6 +80,14 @@
     }
 }
 
+- (void)fl_init{
+    [self fl_initCaptureInput];
+    [self fl_initCaptureOutput];
+    [self fl_initCaptureSession];
+    [self fl_defaultConfig];
+    [self fl_updateFps:self.fl_videoConfig.fl_fps];
+}
+
 /**
  *  @author gitKong
  *
@@ -83,14 +98,26 @@
     [self.session beginConfiguration];
     
     // setting input & output config
-    [self fl_initCaptureInput];
-    [self fl_initCaptureOutput];
-    [self fl_initCapturePreset:AVCaptureSessionPresetHigh];
+    // add input
+    if ([self.session canAddInput:self.videoCaptureInput]) {
+        [self.session addInput:self.videoCaptureInput];
+    }
+    if ([self.session canAddInput:self.audioCaptureInput]) {
+        [self.session addInput:self.audioCaptureInput];
+    }
+    
+    // add output
+    if ([self.session canAddOutput:self.videoCaptureOutput]) {
+        [self.session addOutput:self.videoCaptureOutput];
+    }
+    if ([self.session canAddOutput:self.audioCaptureOutput]) {
+        [self.session addOutput:self.audioCaptureOutput];
+    }
+    [self fl_initCapturePreset:AVCaptureSessionPresetiFrame960x540];
+    
     [self.session commitConfiguration];
-    [self fl_defaultConfig];
+    
     [self.session startRunning];
-    // setting fps
-    [self fl_updateFps:self.fl_videoConfig.fl_fps];
 }
 
 
@@ -106,19 +133,12 @@
     // init video input
     self.fontCaptureInput = [AVCaptureDeviceInput deviceInputWithDevice:videoDevices.firstObject error:&error];
     self.backCaptureInput = [AVCaptureDeviceInput deviceInputWithDevice:videoDevices.lastObject error:&error];
-    self.videoCaptureInput = self.fontCaptureInput;
+    
     // init audio input
     AVCaptureDevice *audioDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
     self.audioCaptureInput = [AVCaptureDeviceInput deviceInputWithDevice:audioDevice error:&error];
     
-    // add input
-    if ([self.session canAddInput:self.videoCaptureInput]) {
-        [self.session addInput:self.videoCaptureInput];
-    }
-    if ([self.session canAddInput:self.audioCaptureInput]) {
-        [self.session addInput:self.audioCaptureInput];
-    }
-    
+    self.videoCaptureInput = self.fontCaptureInput;
 }
 
 /**
@@ -130,6 +150,7 @@
     self.videoCaptureOutput = [[AVCaptureVideoDataOutput alloc] init];
     // default queue
     dispatch_queue_t outputCaptureQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//    dispatch_queue_t outputCaptureQueue = dispatch_queue_create("outputCaptureQueue", DISPATCH_QUEUE_SERIAL);
     // init video output
     [self.videoCaptureOutput setSampleBufferDelegate:self queue:outputCaptureQueue];
     // discard late video frames
@@ -137,20 +158,11 @@
     // setting video output data format (YUV or RGB) , the only supported key is kCVPixelBufferPixelFormatTypeKey. Supported pixel formats are kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, kCVPixelFormatType_420YpCbCr8BiPlanarFullRange and kCVPixelFormatType_32BGRA.
     [self.videoCaptureOutput setVideoSettings:@{(__bridge NSString *)kCVPixelBufferPixelFormatTypeKey:@(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)}];
     // setting video output config
-    [self fl_videoOutputConfig];
+//    [self fl_videoOutputConfig];
     
     // init audio output
     self.audioCaptureOutput = [[AVCaptureAudioDataOutput alloc] init];
-    [self.audioCaptureOutput setSampleBufferDelegate:self queue:outputCaptureQueue];
-    
-    // add output
-    if ([self.session canAddOutput:self.videoCaptureOutput]) {
-        [self.session addOutput:self.videoCaptureOutput];
-    }
-    if ([self.session canAddOutput:self.audioCaptureOutput]) {
-        [self.session addOutput:self.audioCaptureOutput];
-    }
-    
+    [self.audioCaptureOutput setSampleBufferDelegate:self queue:outputCaptureQueue];    
 }
 
 - (void)fl_videoOutputConfig{
@@ -166,7 +178,7 @@
         }
         // whether the video flowing through the connection should be mirrored about its vertical axis.视频是否应围绕其垂直轴进行镜像
         if (connection.isVideoMirroringSupported) {
-            [connection setVideoMirrored:NO];
+            [connection setVideoMirrored:YES];
         }
     }
 }
@@ -204,7 +216,7 @@
     if (_videoCaptureInput) {
         [self.session removeInput:_videoCaptureInput];
     }
-    if ([self.session canAddInput:videoCaptureInput]) {
+    if (videoCaptureInput) {
         [self.session addInput:videoCaptureInput];
     }
     // reset config because add new input
@@ -282,7 +294,18 @@
  *  output callback
  */
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection{
+    NSLog(@"hello gitKong");
     // 这里获取到 sampleBuffer 就要转换成 yuv 格式数据（通过CMSampleBufferGetImageBuffer）
+    if ([captureOutput isEqual:self.videoCaptureOutput]) {
+        // If you need to reference the CMSampleBuffer object outside of the scope of this method, you must CFRetain it and then CFRelease it when you are finished with it.
+        CFRetain(sampleBuffer);
+        NSData *data = [self.fl_videoEncoder fl_SampleBufferToYuvData:sampleBuffer];
+        NSLog(@"hello Video = %@",data);
+        CFRelease(sampleBuffer);
+    }
+    else if([self.audioCaptureOutput isEqual:captureOutput]){
+        NSLog(@"....");
+    }
 }
 
 #pragma mark -- private method
@@ -296,7 +319,8 @@
         if (maxRate >= fps) {
             if ([vDevice lockForConfiguration:NULL]) {
                 // CMTimeMake(a,b)    a当前第几帧, b每秒钟多少帧.当前播放时间a/b
-                vDevice.activeVideoMinFrameDuration = CMTimeMake(1, (int)fps);
+                // 如果设置1，会卡主，10就没问题
+                vDevice.activeVideoMinFrameDuration = CMTimeMake(10, (int)(fps * 10));
                 vDevice.activeVideoMaxFrameDuration = vDevice.activeVideoMinFrameDuration;
                 [vDevice unlockForConfiguration];
             }

@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 @import UIKit;
 #import "FLAVConfig.h"
+#import "FLVideoEncoder.h"
 
 typedef NS_ENUM(NSUInteger, FLCaptureSessionPreset) {
     FLCaptureSessionPreset_High,//iOS 4.0+
@@ -36,16 +37,19 @@ typedef NS_ENUM(NSUInteger, FLCaptureSessionPreset) {
  */
 @property (nonatomic,strong)FLAudioConfig *fl_audioConfig;
 
+@property (nonatomic,strong)FLVideoEncoder *fl_videoEncoder;
+
 /*
  *  BY gitKong
  *
  *  whether camera position is font or not,default is YES,setting NO to change camera position to back(前置/后置摄像头)
  */
 @property (nonatomic,assign)BOOL fl_isFont;
+
 /*
  *  BY gitKong
  *
- *  capture session preset,default is FLCaptureSessionPreset_High (采集质量)
+ *  capture session preset,default is FLCaptureSessionPreset_960x540 (采集质量)
  */
 @property (nonatomic,assign)FLCaptureSessionPreset fl_captureSessionPreset;
 
