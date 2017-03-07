@@ -16,6 +16,7 @@
 		115541A61E666527007D966F /* FLLiveTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 115541A51E666527007D966F /* FLLiveTests.m */; };
 		115541B11E666527007D966F /* FLLiveUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 115541B01E666527007D966F /* FLLiveUITests.m */; };
 		115541C11E6665A4007D966F /* FLAVCaptureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 115541C01E6665A4007D966F /* FLAVCaptureManager.m */; };
+		11952F241E6D5C60001166A2 /* FLAVConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 11952F231E6D5C60001166A2 /* FLAVConfig.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,6 +55,8 @@
 		115541B21E666527007D966F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		115541BF1E6665A4007D966F /* FLAVCaptureManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FLAVCaptureManager.h; sourceTree = "<group>"; };
 		115541C01E6665A4007D966F /* FLAVCaptureManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FLAVCaptureManager.m; sourceTree = "<group>"; };
+		11952F221E6D5C60001166A2 /* FLAVConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FLAVConfig.h; sourceTree = "<group>"; };
+		11952F231E6D5C60001166A2 /* FLAVConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FLAVConfig.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +107,7 @@
 		1155418A1E666527007D966F /* FLLive */ = {
 			isa = PBXGroup;
 			children = (
+				11952F211E6D5BB9001166A2 /* Config */,
 				115541BE1E666558007D966F /* Capture */,
 				1155418E1E666527007D966F /* AppDelegate.h */,
 				1155418F1E666527007D966F /* AppDelegate.m */,
@@ -151,6 +155,15 @@
 				115541C01E6665A4007D966F /* FLAVCaptureManager.m */,
 			);
 			name = Capture;
+			sourceTree = "<group>";
+		};
+		11952F211E6D5BB9001166A2 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				11952F221E6D5C60001166A2 /* FLAVConfig.h */,
+				11952F231E6D5C60001166A2 /* FLAVConfig.m */,
+			);
+			name = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -291,6 +304,7 @@
 			files = (
 				115541931E666527007D966F /* ViewController.m in Sources */,
 				115541901E666527007D966F /* AppDelegate.m in Sources */,
+				11952F241E6D5C60001166A2 /* FLAVConfig.m in Sources */,
 				1155418D1E666527007D966F /* main.m in Sources */,
 				115541C11E6665A4007D966F /* FLAVCaptureManager.m in Sources */,
 			);
@@ -530,6 +544,7 @@
 				115541B71E666527007D966F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		115541B81E666527007D966F /* Build configuration list for PBXNativeTarget "FLLiveTests" */ = {
 			isa = XCConfigurationList;
@@ -538,6 +553,7 @@
 				115541BA1E666527007D966F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		115541BB1E666527007D966F /* Build configuration list for PBXNativeTarget "FLLiveUITests" */ = {
 			isa = XCConfigurationList;
@@ -546,6 +562,7 @@
 				115541BD1E666527007D966F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
