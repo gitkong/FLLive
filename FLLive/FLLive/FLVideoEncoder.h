@@ -20,8 +20,8 @@
  */
 - (NSData *)fl_SampleBufferToYuvData:(CMSampleBufferRef)sampleBufferRef;
 
-- (void)fl_start;
+- (void)fl_open;
 
-- (void)fl_stop;
+- (void)fl_close;
 
 @end
