@@ -60,6 +60,7 @@
 		118508901E6E4A3B0070043C /* FLVideoEncoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FLVideoEncoder.m; sourceTree = "<group>"; };
 		11952F221E6D5C60001166A2 /* FLAVConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FLAVConfig.h; sourceTree = "<group>"; };
 		11952F231E6D5C60001166A2 /* FLAVConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FLAVConfig.m; sourceTree = "<group>"; };
+		11F9A4AC1E77D67900ABF78F /* fl_encode_flv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fl_encode_flv.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -166,6 +167,7 @@
 			children = (
 				1185088F1E6E4A3B0070043C /* FLVideoEncoder.h */,
 				118508901E6E4A3B0070043C /* FLVideoEncoder.m */,
+				11F9A4AC1E77D67900ABF78F /* fl_encode_flv.h */,
 			);
 			name = Encoder;
 			sourceTree = "<group>";

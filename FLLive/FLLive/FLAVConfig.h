@@ -45,7 +45,7 @@
 /*
  *  BY gitKong
  *
- *  采集分辨率大小,默认 540 * 960
+ *  采集分辨率大小,默认 540 * 960,貌似要对应采集质量，否则会出现视频变形
  */
 @property (nonatomic,assign)CGSize fl_videoSize;
 /*

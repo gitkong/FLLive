@@ -20,7 +20,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     self.capture = [[FLAVCaptureManager alloc] init];
-    _semaphore = dispatch_semaphore_create(0);
+//    _semaphore = dispatch_semaphore_create(0);
     
 //    UIView *preview = [[UIView alloc] initWithFrame:self.view.bounds];
 //    [self.view addSubview:preview];
@@ -39,8 +39,8 @@
 //    capture1.fl_previewView = secondView;
 //    [self.view addSubview:secondView];
     
-    [self test1];
-    [self test2];
+//    [self test1];
+//    [self test2];
     
     
     

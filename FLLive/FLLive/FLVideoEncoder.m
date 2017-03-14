@@ -28,7 +28,18 @@
  *  因为sps、pps数据都是一样的，缓存起来
  */
 @property (nonatomic,strong)NSData *spsPpsData;
-
+/*
+ *  BY gitkong
+ *
+ *  是否关键帧，flv格式拼接需要
+ */
+@property (nonatomic,assign)BOOL isKeyFrame;
+/*
+ *  BY gitkong
+ *
+ *  真实的视频帧（每帧数据就是一个NAL单元（SPS与PPS除外））
+ */
+@property (nonatomic,strong)NSData *naluData;
 @end
 
 @implementation FLVideoEncoder
@@ -57,7 +68,9 @@ static void fl_VTCompressionOutputCallback(
         NSLog(@"[%s]--编码后数据不完整，有错误",__func__);
     }
     // 是否当前帧是关键帧，需要标记区分
+    
     BOOL isKeyFrame = !CFDictionaryContainsKey( (CFArrayGetValueAtIndex(CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, true), 0)), kCMSampleAttachmentKey_NotSync);
+    encoder.isKeyFrame = isKeyFrame;
     /*
      *  BY gitkong
      *
@@ -112,10 +125,33 @@ static void fl_VTCompressionOutputCallback(
              */
             NSDictionary *dict = (__bridge NSDictionary *)CMFormatDescriptionGetExtensions(sampleBufFormat);
             encoder.spsPpsData = dict[@"SampleDescriptionExtensionAtoms"][@"avcC"];
+            /*
+             *  BY gitkong
+             *
+             *  获取sps pps 数据后可以继续进行下一步
+             */
+            dispatch_semaphore_signal(encoder.semaphore);
         }
     }
     
     // 获取真正的视频帧
+    /*
+     *  BY gitkong
+     *
+     *  在H.264/AVC视频编码标准中，整个系统框架被分为了两个层面：视频编码层面（VCL）和网络抽象层面（NAL）。其中，前者负责有效表示视频数据的内容，而后者则负责格式化数据并提供头信息，以保证数据适合各种信道和存储介质上的传输。因此我们平时的每帧数据就是一个NAL单元（SPS与PPS除外）。在实际的H264数据帧中，往往帧前面带有00 00 00 01 或 00 00 01分隔符，一般来说编码器编出的首帧数据为PPS与SPS，接着为I帧……
+     
+        H264结构中，一个视频图像编码后的数据叫做一帧，一帧由一个片（slice）或多个片组成，一个片由一个或多个宏块（MB）组成，一个宏块由16x16的yuv数据组成。宏块作为H264编码的基本单位。
+     */
+    /*
+     *  BY gitkong
+     *
+     *  NAL以NALU（NAL unit）为单元来支持编码数据在基于分组交换技术网络中传输。它定义了符合传输层或存储介质要求的数据格式，同时给出头信息，从而提供了视频编码和外部世界的接口
+     
+        解码器可以很方便的检测出NAL的分界，依次取出NAL进行解码。但为了节省码流，H.264没有另外在NAL的头部设立表示起始位置的句法元素。如果编码数据是存储在介质上的，由于NAL是依次紧密相连的，解码器就无法在数据流中分辨出每个NAL的起始位置和终止位置。
+        解决方案：在每个NAL前添加起始码：0X000001
+     
+        因为是实时推流，获取一个NAL数据，就传输出去，因此不需要添加0X000001，如果是存储在文件中，就需要
+     */
     
     // 通过CMSampleBufferGetDataBuffer 获取视频数据缓存器，包含视频数据，The result will be NULL if the CMSampleBuffer does not contain a CMBlockBuffer, if the CMSampleBuffer contains a CVImageBuffer, or if there is some other error.
     CMBlockBufferRef blockBuffer = CMSampleBufferGetDataBuffer(sampleBuffer);
@@ -138,9 +174,59 @@ static void fl_VTCompressionOutputCallback(
         size_t *blockData = nil;
         status = CMBlockBufferGetDataPointer(blockBuffer, 0, NULL, &blockDataLength, (char **)&blockData);
         if (status == noErr) {
-            
+            /*
+             *  BY gitkong
+             *
+             *  当前读取到的数据位置（地址）
+             */
+            size_t currReadPos = 0;
+            //一般情况下都是只有1帧，在最开始编码的时候有2帧，取最后一帧，此时一帧的开始使用4字节表示
+            /*
+             *  BY gitkong
+             *
+             *  int 是 4个字节，因为要取开始编码的第二帧，就是说少了一个int，4个字节，所以要减去4
+             */
+            while (currReadPos < blockDataLength - 4) {
+                // 一个 nalu 数据的长度
+                uint32_t naluLen = 0;
+                // 由指向blockData + currReadPos地址的连续4个字节的数据拷贝到nalulen指向的地址中
+                memcpy(&naluLen, blockData + currReadPos, 4);
+                
+                /*
+                 *  BY gitkong
+                 *
+                 *  CFSwapInt32BigToHost 单字节不需要转换，32位的数量型需要对4个字节进行反转，16位的要对2个字节进行反转，将32位的整数从big-endian 转换成主机系统的endian格式（字节顺序处理方式）http://www.doc88.com/p-2905571595364.html
+                 
+                 *  当源和宿主系统的字节顺序处理方式是一样的话，这个函数就什么都不处理
+                 */
+                naluLen = CFSwapInt32BigToHost(naluLen);
+                
+                //naluData 即为一帧h264数据。
+                //如果保存到文件中，需要将此数据前加上 [0 0 0 1] 4个字节，按顺序写入到h264文件中。
+                //如果推流，需要将此数据前加上4个字节表示数据长度的数字，此数据需转为大端字节序。
+                //关于大端和小端模式，请参考此网址：http://blog.csdn.net/hackbuteer1/article/details/7722667
+                encoder.naluData = [NSData dataWithBytes:blockData + currReadPos + 4 length:naluLen];
+                
+                currReadPos += 4 + naluLen;
+            }
+        }
+        else{
+            NSLog(@"获取H264数据失败");
         }
     }
+    else{
+        NSLog(@"the CMSampleBuffer does not contain a CMBlockBuffer");
+    }
+    /*
+     *  BY gitkong
+     *
+     *  获取sps pps 数据后可以继续进行下一步
+     */
+    if (encoder.spsPpsData) {
+        dispatch_semaphore_signal(encoder.semaphore);
+    }
+    // 不管有没有naluData 都要发个信号，避免H264转flv格式的时候长时间等待
+    dispatch_semaphore_signal(encoder.semaphore);
 }
 
 - (void)fl_open{
@@ -195,7 +281,22 @@ static void fl_VTCompressionOutputCallback(
 }
 
 - (void)fl_close{
-    
+    /*
+     *  BY gitkong
+     *
+     *  发送一次信号，确保不会出现长时间等待
+     */
+    dispatch_semaphore_signal(self.semaphore);
+    /*
+     *  BY gitkong
+     *
+     *  销毁session，如果之前有多次retain，此时需要手动去release，否则此方法会release
+     */
+    VTCompressionSessionInvalidate(self.encodeSession);
+    self.encodeSession = nil;
+    self.naluData = nil;
+    self.isKeyFrame = NO;
+    self.spsPpsData = nil;
 }
 
 - (NSData *)fl_SampleBufferToYuvData:(CMSampleBufferRef)sampleBufferRef{
